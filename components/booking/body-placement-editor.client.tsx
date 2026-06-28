@@ -6,20 +6,21 @@ import { Image as KonvaImage, Layer, Rect, Stage, Transformer } from "react-konv
 import { FIGURES, type FigureKind, type FigureView } from "@/lib/booking/figures";
 import { computeCoverage, type Point } from "@/lib/booking/coverage";
 import type { BodyPartKey } from "@/lib/booking/body-parts";
+import type { Placement } from "@/lib/booking/types";
 import { useHtmlImage } from "@/components/booking/use-html-image";
 
 export type BodyPlacementEditorProps = {
   figureKind: FigureKind;
   view: FigureView;
   imageSrc: string | null;
-  onCoverageChange: (coverage: Partial<Record<BodyPartKey, number>>) => void;
+  onChange: (data: { coverage: Partial<Record<BodyPartKey, number>>; placement: Placement }) => void;
 };
 
 export default function BodyPlacementEditorClient({
   figureKind,
   view,
   imageSrc,
-  onCoverageChange,
+  onChange,
 }: BodyPlacementEditorProps) {
   const figure = FIGURES[figureKind][view];
   const [img] = useHtmlImage(imageSrc);
@@ -41,7 +42,18 @@ export default function BodyPlacementEditorClient({
     ];
     const cov = computeCoverage(quad, figure.parts);
     setCovered(cov);
-    onCoverageChange(cov);
+    onChange({
+      coverage: cov,
+      placement: {
+        x: node.x(),
+        y: node.y(),
+        scaleX: node.scaleX(),
+        scaleY: node.scaleY(),
+        rotationDeg: node.rotation(),
+        naturalWidth: w,
+        naturalHeight: h,
+      },
+    });
   }
 
   // Bild initial mittig platzieren + Transformer anhaengen, sobald geladen.

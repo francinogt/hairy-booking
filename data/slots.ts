@@ -11,11 +11,13 @@ import {
 } from "@/db/schema";
 import { fromMysqlDateTime, toMysqlDateTime } from "@/lib/datetime";
 import { getSettings } from "@/data/settings";
+import type { DayAvailability } from "@/lib/booking/types";
 
 type Interval = { start: number; end: number };
 
 const MS_MIN = 60_000;
 const MS_DAY = 86_400_000;
+const MAX_RANGE_DAYS = 62;
 
 const pad = (n: number) => String(n).padStart(2, "0");
 const dateStr = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -41,29 +43,30 @@ function nowNaive(tz: string): Date {
 }
 
 /**
- * Freie Start-Zeiten je Tag fuer einen Mitarbeiter und eine gewuenschte Dauer.
- * Rueckgabe: { 'YYYY-MM-DD': ['09:00','09:15', ...] }.
- * Belegt = aktive Termine + Sperrzeiten + offene Anfragen mit Wunschzeit (Soft-Hold).
+ * Verfuegbarkeit je Tag fuer einen Mitarbeiter und eine gewuenschte Dauer.
+ * status: 'free' (Arbeitstag mit ≥1 freiem Slot), 'full' (Arbeitstag, 0 Slots),
+ * 'closed' (kein Dienst / Vergangenheit / nach Buchungshorizont).
  */
-export async function computeFreeSlots(input: {
+export async function computeDayAvailability(input: {
   staffId: number;
   durationMin: number;
   fromDate: string;
   toDate: string;
-}): Promise<Record<string, string[]>> {
+}): Promise<Record<string, DayAvailability>> {
   if (input.durationMin <= 0) return {};
   const s = await getSettings();
   const interval = s.slotIntervalMin;
   const now = nowNaive(s.timezone);
   const earliest = now.getTime() + s.leadTimeMin * MS_MIN;
   const maxMs = now.getTime() + s.bookingHorizonDays * MS_DAY;
+  const todayStr = dateStr(now);
 
   const rangeStart = new Date(`${input.fromDate}T00:00:00`);
   let rangeEnd = new Date(`${input.toDate}T23:59:59`);
-  if (rangeEnd.getTime() > maxMs) rangeEnd = new Date(maxMs);
+  const cap = new Date(rangeStart.getTime() + MAX_RANGE_DAYS * MS_DAY);
+  if (rangeEnd.getTime() > cap.getTime()) rangeEnd = cap;
   if (rangeEnd.getTime() < rangeStart.getTime()) return {};
 
-  // Arbeitszeiten nach Wochentag
   const wh = await db
     .select()
     .from(workingHours)
@@ -74,7 +77,6 @@ export async function computeFreeSlots(input: {
     arr.push({ start: w.startTime, end: w.endTime });
     byWeekday.set(w.weekday, arr);
   }
-  if (wh.length === 0) return {};
 
   // Belegte Intervalle im Bereich
   const startStr = toMysqlDateTime(rangeStart);
@@ -122,16 +124,22 @@ export async function computeFreeSlots(input: {
     busy.push({ start: st, end: st + h.dur * MS_MIN });
   }
 
-  const result: Record<string, string[]> = {};
+  const result: Record<string, DayAvailability> = {};
   const durMs = input.durationMin * MS_MIN;
   const stepMs = interval * MS_MIN;
 
   for (let d = new Date(rangeStart); d.getTime() <= rangeEnd.getTime(); d.setDate(d.getDate() + 1)) {
-    const weekday = WEEKDAYS[(d.getDay() + 6) % 7];
-    const windows = byWeekday.get(weekday);
-    if (!windows) continue;
-    const dayMid = `${dateStr(d)}T00:00:00`;
-    const dayStartMs = new Date(dayMid).getTime();
+    const ds = dateStr(d);
+    if (ds < todayStr || d.getTime() > maxMs) {
+      result[ds] = { status: "closed", slots: [] };
+      continue;
+    }
+    const windows = byWeekday.get(WEEKDAYS[(d.getDay() + 6) % 7]);
+    if (!windows) {
+      result[ds] = { status: "closed", slots: [] };
+      continue;
+    }
+    const dayStartMs = new Date(`${ds}T00:00:00`).getTime();
     const slots: string[] = [];
     for (const win of windows) {
       const [sh, sm] = win.start.split(":").map(Number);
@@ -144,7 +152,7 @@ export async function computeFreeSlots(input: {
         slots.push(timeStr(t));
       }
     }
-    if (slots.length > 0) result[dateStr(d)] = slots;
+    result[ds] = { status: slots.length > 0 ? "free" : "full", slots };
   }
 
   return result;

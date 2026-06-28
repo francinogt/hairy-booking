@@ -3,38 +3,39 @@
 // Daten-Fetch beim Mounten/Aenderung -> synchrones Reset im Effekt ist hier gewollt.
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useEffect, useState } from "react";
-import { getAvailableSlots } from "@/app/actions/booking";
+import { getMonthAvailability } from "@/app/actions/booking";
+import type { DayAvailability } from "@/lib/booking/types";
 
-export function useSlots(
+export function useDayAvailability(
   staffId: number | null,
   durationMin: number,
   fromDate: string,
   toDate: string,
 ) {
-  const [slots, setSlots] = useState<Record<string, string[]> | null>(null);
+  const [days, setDays] = useState<Record<string, DayAvailability> | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    setSlots(null);
+    setDays(null);
     setError(null);
     if (!staffId || durationMin <= 0) {
-      setSlots({});
+      setDays({});
       return;
     }
-    getAvailableSlots({ staffId, durationMin, fromDate, toDate })
+    getMonthAvailability({ staffId, durationMin, fromDate, toDate })
       .then((res) => {
         if (!active) return;
-        if (res.ok) setSlots(res.slots);
+        if (res.ok) setDays(res.days);
         else {
           setError(res.error);
-          setSlots({});
+          setDays({});
         }
       })
       .catch(() => {
         if (active) {
-          setError("Termine konnten nicht geladen werden.");
-          setSlots({});
+          setError("Kalender konnte nicht geladen werden.");
+          setDays({});
         }
       });
     return () => {
@@ -42,5 +43,5 @@ export function useSlots(
     };
   }, [staffId, durationMin, fromDate, toDate]);
 
-  return { slots, loading: slots === null, error };
+  return { days, loading: days === null, error };
 }
