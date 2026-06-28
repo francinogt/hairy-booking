@@ -41,6 +41,10 @@ export type AppointmentStatus = (typeof APPOINTMENT_STATUSES)[number];
 export const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 export type Weekday = (typeof WEEKDAYS)[number];
 
+/** Rollen, die per Einladung vergeben werden koennen (kein owner). */
+export const INVITE_ROLES = ["admin", "customer"] as const;
+export type InviteRole = (typeof INVITE_ROLES)[number];
+
 /** Aktive Belegungen, die bei der Slot-Berechnung als "besetzt" zaehlen. */
 export const ACTIVE_APPOINTMENT_STATUSES = ["pending", "confirmed"] as const;
 
@@ -76,6 +80,8 @@ export const settings = mysqlTable("settings", {
   colorPageBg: varchar("color_page_bg", { length: 9 }).notNull().default("#ffffff"),
   colorText: varchar("color_text", { length: 9 }).notNull().default("#171717"),
   colorAccent: varchar("color_accent", { length: 9 }).notNull().default("#2563eb"),
+  colorFooterBg: varchar("color_footer_bg", { length: 9 }).notNull().default("#111827"),
+  colorFooterText: varchar("color_footer_text", { length: 9 }).notNull().default("#9ca3af"),
   fontHeading: varchar("font_heading", { length: 40 }).notNull().default("geist"),
   fontBody: varchar("font_body", { length: 40 }).notNull().default("geist"),
   pwaThemeColor: varchar("pwa_theme_color", { length: 9 }).notNull().default("#111827"),
@@ -259,6 +265,32 @@ export const sessions = mysqlTable(
 );
 
 // ---------------------------------------------------------------------------
+// invitations — Einladungen (Owner laedt Admin/Kunde ein; Link mit Roh-Token)
+// ---------------------------------------------------------------------------
+export const invitations = mysqlTable(
+  "invitations",
+  {
+    id: int("id").autoincrement().primaryKey(),
+    token: varchar("token", { length: 64 }).notNull(),
+    email: varchar("email", { length: 255 }).notNull(),
+    role: mysqlEnum("role", INVITE_ROLES).notNull().default("customer"),
+    firstName: varchar("first_name", { length: 80 }).notNull(),
+    lastName: varchar("last_name", { length: 80 }).notNull(),
+    displayName: varchar("display_name", { length: 120 }),
+    invitedByUserId: int("invited_by_user_id")
+      .notNull()
+      .references(() => users.id),
+    expiresAt: datetime("expires_at", { mode: "string" }).notNull(),
+    acceptedAt: datetime("accepted_at", { mode: "string" }),
+    createdAt: timestamp("created_at", { mode: "string" }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex("uq_invitations_token").on(t.token),
+    index("idx_invitations_email").on(t.email),
+  ],
+);
+
+// ---------------------------------------------------------------------------
 // Relations (fuer die db.query.* Relational-API)
 // ---------------------------------------------------------------------------
 export const usersRelations = relations(users, ({ one, many }) => ({
@@ -327,6 +359,13 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] }),
 }));
 
+export const invitationsRelations = relations(invitations, ({ one }) => ({
+  invitedBy: one(users, {
+    fields: [invitations.invitedByUserId],
+    references: [users.id],
+  }),
+}));
+
 // Bequeme Typ-Aliase
 export type Settings = typeof settings.$inferSelect;
 export type User = typeof users.$inferSelect;
@@ -337,3 +376,4 @@ export type WorkingHour = typeof workingHours.$inferSelect;
 export type BlockedTime = typeof blockedTime.$inferSelect;
 export type Appointment = typeof appointments.$inferSelect;
 export type Session = typeof sessions.$inferSelect;
+export type Invitation = typeof invitations.$inferSelect;

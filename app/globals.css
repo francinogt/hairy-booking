@@ -7,6 +7,8 @@
   --navbar-bg: #111827;
   --navbar-text: #ffffff;
   --accent: #2563eb;
+  --footer-bg: #111827;
+  --footer-text: #9ca3af;
   --brand-font-heading: var(--f-geist, ui-sans-serif, system-ui, sans-serif);
   --brand-font-body: var(--f-geist, ui-sans-serif, system-ui, sans-serif);
 }
@@ -17,6 +19,8 @@
   --color-navbar: var(--navbar-bg);
   --color-navbar-foreground: var(--navbar-text);
   --color-accent: var(--accent);
+  --color-footer: var(--footer-bg);
+  --color-footer-foreground: var(--footer-text);
   --font-sans: var(--brand-font-body);
   --font-heading: var(--brand-font-heading);
   --font-mono: var(--font-geist-mono);

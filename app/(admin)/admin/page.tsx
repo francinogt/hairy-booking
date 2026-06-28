@@ -1,31 +1,60 @@
 import type { Metadata } from "next";
-import { requireRole } from "@/lib/auth/dal";
-import { logout } from "@/app/actions/auth";
+import Link from "next/link";
+import { getMyStaff, requireRole } from "@/lib/auth/dal";
 
 export const metadata: Metadata = {
-  title: "Verwaltung",
+  title: "Übersicht",
 };
 
-export default async function AdminPage() {
+type Card = { href: string; title: string; text: string };
+
+export default async function AdminDashboard() {
   const user = await requireRole("owner", "admin");
+  const my = await getMyStaff();
+  const isOwner = user.role === "owner";
+
+  const cards: Card[] = [
+    { href: "/admin/profile", title: "Mein Profil", text: "Anzeigename, Bio und Buchbarkeit." },
+    { href: "/admin/services", title: "Dienstleistungen", text: "Angebote, Dauer und Preise." },
+    { href: "/admin/availability", title: "Arbeitszeiten", text: "Wochenzeiten und Sperrzeiten." },
+  ];
+  if (isOwner) {
+    cards.push(
+      { href: "/admin/users", title: "Benutzer", text: "Mitarbeiter & Kunden einladen, verwalten." },
+      { href: "/admin/branding", title: "Branding & Firma", text: "Logo, Farben, Schriften, Kontakt." },
+    );
+  }
 
   return (
-    <main className="mx-auto w-full max-w-3xl flex-1 px-4 py-10">
-      <h1 className="text-2xl font-semibold text-zinc-900">Verwaltung</h1>
-      <p className="mt-2 text-zinc-600">
-        Willkommen, {user.firstName} ({user.role === "owner" ? "Owner" : "Mitarbeiter"})
+    <section>
+      <h1 className="font-heading text-2xl font-semibold text-zinc-900">Übersicht</h1>
+      <p className="mt-1 text-zinc-600">
+        Willkommen, {user.firstName} —{" "}
+        <span className="font-medium">{isOwner ? "Owner" : "Mitarbeiter"}</span>.
       </p>
 
-      {/* Termine, Dienstleistungen, Verfuegbarkeit und Branding folgen in spaeteren Phasen. */}
+      {!my ? (
+        <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+          Du hast noch kein Mitarbeiter-Profil.{" "}
+          <Link href="/admin/profile" className="font-medium underline">
+            Jetzt anlegen
+          </Link>{" "}
+          – danach kannst du Dienstleistungen und Arbeitszeiten verwalten.
+        </div>
+      ) : null}
 
-      <form action={logout} className="mt-8">
-        <button
-          type="submit"
-          className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-        >
-          Abmelden
-        </button>
-      </form>
-    </main>
+      <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        {cards.map((c) => (
+          <Link
+            key={c.href}
+            href={c.href}
+            className="rounded-xl border border-zinc-200 bg-white p-5 transition-colors hover:border-zinc-300 hover:bg-zinc-50"
+          >
+            <p className="font-heading text-base font-semibold text-zinc-900">{c.title}</p>
+            <p className="mt-1 text-sm text-zinc-600">{c.text}</p>
+          </Link>
+        ))}
+      </div>
+    </section>
   );
 }

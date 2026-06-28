@@ -4,6 +4,7 @@ import { getSettings } from "@/data/settings";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { baseFontClasses, fontCssVars } from "@/lib/fonts";
 import { Navbar } from "@/components/navbar";
+import { Footer } from "@/components/footer";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
@@ -37,6 +38,8 @@ export default async function RootLayout({
     `--background:${s.colorPageBg};` +
     `--foreground:${s.colorText};` +
     `--accent:${s.colorAccent};` +
+    `--footer-bg:${s.colorFooterBg};` +
+    `--footer-text:${s.colorFooterText};` +
     fontCssVars(s.fontHeading, s.fontBody) +
     `}`;
 
@@ -48,6 +51,7 @@ export default async function RootLayout({
       <body className="flex min-h-full flex-col bg-background text-foreground">
         <Navbar user={user} settings={s} />
         {children}
+        <Footer settings={s} />
       </body>
     </html>
   );

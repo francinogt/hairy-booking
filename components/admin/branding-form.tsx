@@ -8,11 +8,18 @@ export type BrandingInitial = {
   companyName: string;
   shortName: string;
   industry: string;
+  contactEmail: string;
+  contactPhone: string;
+  addressLine: string;
+  postalCode: string;
+  city: string;
   colorNavbarBg: string;
   colorNavbarText: string;
   colorPageBg: string;
   colorText: string;
   colorAccent: string;
+  colorFooterBg: string;
+  colorFooterText: string;
   pwaThemeColor: string;
   pwaBackgroundColor: string;
   fontHeading: string;
@@ -60,6 +67,8 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
   const [pageBg, setPageBg] = useState(initial.colorPageBg);
   const [text, setText] = useState(initial.colorText);
   const [accent, setAccent] = useState(initial.colorAccent);
+  const [footerBg, setFooterBg] = useState(initial.colorFooterBg);
+  const [footerText, setFooterText] = useState(initial.colorFooterText);
   const [pwaTheme, setPwaTheme] = useState(initial.pwaThemeColor);
   const [pwaBg, setPwaBg] = useState(initial.pwaBackgroundColor);
 
@@ -102,6 +111,35 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
         </div>
       </fieldset>
 
+      {/* Kontakt & Adresse (erscheint im Footer) */}
+      <fieldset className="flex flex-col gap-4">
+        <legend className="font-heading text-lg font-semibold text-zinc-900">Kontakt &amp; Adresse</legend>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700">
+            Kontakt-E-Mail
+            <input type="email" name="contactEmail" defaultValue={initial.contactEmail} className={textInput} />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700">
+            Telefon
+            <input type="tel" name="contactPhone" defaultValue={initial.contactPhone} className={textInput} />
+          </label>
+        </div>
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700">
+          Strasse / Adresse
+          <input type="text" name="addressLine" defaultValue={initial.addressLine} className={textInput} />
+        </label>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700">
+            PLZ
+            <input type="text" name="postalCode" defaultValue={initial.postalCode} className={textInput} />
+          </label>
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700">
+            Ort
+            <input type="text" name="city" defaultValue={initial.city} className={textInput} />
+          </label>
+        </div>
+      </fieldset>
+
       {/* Logo */}
       <fieldset className="flex flex-col gap-3">
         <legend className="font-heading text-lg font-semibold text-zinc-900">Logo</legend>
@@ -124,6 +162,8 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
           <ColorField name="colorPageBg" label="Seiten-Hintergrund" value={pageBg} onChange={setPageBg} />
           <ColorField name="colorText" label="Textfarbe" value={text} onChange={setText} />
           <ColorField name="colorAccent" label="Akzentfarbe" value={accent} onChange={setAccent} />
+          <ColorField name="colorFooterBg" label="Footer-Hintergrund" value={footerBg} onChange={setFooterBg} />
+          <ColorField name="colorFooterText" label="Footer-Text" value={footerText} onChange={setFooterText} />
         </div>
 
         {/* Erweiterte / PWA-Farben */}
@@ -149,6 +189,9 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
           <div className="px-4 py-6" style={{ background: pageBg, color: text }}>
             <p className="text-base font-semibold">Vorschau</p>
             <p className="mt-1 text-sm opacity-80">So sehen Navbar, Hintergrund und Text aus.</p>
+          </div>
+          <div className="px-4 py-3 text-xs" style={{ background: footerBg, color: footerText }}>
+            © {initial.companyName || "Mein Studio"} – Footer
           </div>
         </div>
       </fieldset>

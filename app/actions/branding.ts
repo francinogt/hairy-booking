@@ -10,12 +10,15 @@ import { requireOwner } from "@/lib/auth/dal";
 import { isFontKey } from "@/lib/font-options";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const COLOR_FIELDS = [
   "colorNavbarBg",
   "colorNavbarText",
   "colorPageBg",
   "colorText",
   "colorAccent",
+  "colorFooterBg",
+  "colorFooterText",
   "pwaThemeColor",
   "pwaBackgroundColor",
 ] as const;
@@ -66,12 +69,26 @@ export async function saveBranding(
     return { error: "Unbekannte Schriftart." };
   }
 
+  const contactEmail = String(formData.get("contactEmail") ?? "").trim() || null;
+  if (contactEmail && !EMAIL.test(contactEmail)) {
+    return { error: "Ungueltige Kontakt-E-Mail-Adresse." };
+  }
+  const contactPhone = String(formData.get("contactPhone") ?? "").trim() || null;
+  const addressLine = String(formData.get("addressLine") ?? "").trim() || null;
+  const postalCode = String(formData.get("postalCode") ?? "").trim() || null;
+  const city = String(formData.get("city") ?? "").trim() || null;
+
   const values: Partial<typeof settings.$inferInsert> = {
     companyName,
     shortName: (shortNameRaw || companyName).slice(0, 24),
     industry,
     fontHeading,
     fontBody,
+    contactEmail,
+    contactPhone,
+    addressLine,
+    postalCode,
+    city,
     ...colors,
   };
 

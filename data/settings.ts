@@ -30,6 +30,8 @@ export const DEFAULT_SETTINGS: Settings = {
   colorPageBg: "#ffffff",
   colorText: "#171717",
   colorAccent: "#2563eb",
+  colorFooterBg: "#111827",
+  colorFooterText: "#9ca3af",
   fontHeading: "geist",
   fontBody: "geist",
   pwaThemeColor: "#111827",
