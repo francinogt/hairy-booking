@@ -78,6 +78,14 @@ export async function saveBranding(
   const postalCode = String(formData.get("postalCode") ?? "").trim() || null;
   const city = String(formData.get("city") ?? "").trim() || null;
 
+  const minPriceRaw = String(formData.get("minPriceAmount") ?? "").trim().replace(",", ".");
+  let minPriceAmount: string | undefined;
+  if (minPriceRaw !== "") {
+    const n = Number(minPriceRaw);
+    if (!Number.isFinite(n) || n < 0) return { error: "Ungültiger Mindestpreis." };
+    minPriceAmount = n.toFixed(2);
+  }
+
   const values: Partial<typeof settings.$inferInsert> = {
     companyName,
     shortName: (shortNameRaw || companyName).slice(0, 24),
@@ -89,6 +97,7 @@ export async function saveBranding(
     addressLine,
     postalCode,
     city,
+    ...(minPriceAmount !== undefined ? { minPriceAmount } : {}),
     ...colors,
   };
 

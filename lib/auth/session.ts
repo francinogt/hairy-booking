@@ -1,7 +1,7 @@
 import "server-only";
 import { createHash, randomBytes } from "node:crypto";
 import { cookies } from "next/headers";
-import { eq } from "drizzle-orm";
+import { and, eq, ne } from "drizzle-orm";
 import { db } from "@/db";
 import { sessions, users, type User } from "@/db/schema";
 import { toMysqlDateTime } from "@/lib/datetime";
@@ -98,4 +98,21 @@ export async function deleteSession(): Promise<void> {
     await db.delete(sessions).where(eq(sessions.id, hashToken(token)));
   }
   cookieStore.delete(SESSION_COOKIE);
+}
+
+/**
+ * Loescht alle Sessions des Nutzers AUSSER der aktuellen (z.B. nach Passwortwechsel:
+ * andere Geraete werden abgemeldet, der aktuelle Browser bleibt eingeloggt).
+ */
+export async function revokeOtherSessions(userId: number): Promise<void> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE)?.value;
+  const currentId = token ? hashToken(token) : null;
+  if (currentId) {
+    await db
+      .delete(sessions)
+      .where(and(eq(sessions.userId, userId), ne(sessions.id, currentId)));
+  } else {
+    await db.delete(sessions).where(eq(sessions.userId, userId));
+  }
 }

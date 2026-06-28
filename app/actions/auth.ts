@@ -6,13 +6,15 @@ import { z } from "zod";
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { hashPassword, verifyPassword } from "@/lib/auth/password";
-import { createSession, deleteSession } from "@/lib/auth/session";
+import { createSession, deleteSession, revokeOtherSessions } from "@/lib/auth/session";
+import { requireUser } from "@/lib/auth/dal";
 import { loginSchema, registerSchema } from "@/lib/auth/schemas";
 import { acceptInvitation } from "@/data/invitations";
 
 export type AuthState =
   | {
       error?: string;
+      success?: boolean;
       fieldErrors?: Record<string, string[] | undefined>;
     }
   | undefined;
@@ -57,7 +59,7 @@ export async function register(_prev: AuthState, formData: FormData): Promise<Au
     .$returningId();
 
   await createSession(newUserId);
-  redirect("/account");
+  redirect("/book");
 }
 
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
@@ -86,7 +88,7 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   }
 
   await createSession(user.id);
-  redirect(user.role === "customer" ? "/account" : "/admin");
+  redirect(user.role === "customer" ? "/book" : "/admin");
 }
 
 export async function logout(): Promise<void> {
@@ -118,4 +120,50 @@ export async function acceptInvite(_prev: AuthState, formData: FormData): Promis
 
   await createSession(result.userId);
   redirect(result.role === "admin" ? "/admin" : "/account");
+}
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Bitte dein aktuelles Passwort eingeben"),
+  newPassword: z
+    .string()
+    .min(10, "Das neue Passwort muss mindestens 10 Zeichen lang sein")
+    .max(200, "Das Passwort ist zu lang"),
+});
+
+export async function changePassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const user = await requireUser();
+
+  const parsed = changePasswordSchema.safeParse({
+    currentPassword: formData.get("currentPassword"),
+    newPassword: formData.get("newPassword"),
+  });
+  if (!parsed.success) {
+    return { fieldErrors: z.flattenError(parsed.error).fieldErrors };
+  }
+
+  if (String(formData.get("confirmPassword") ?? "") !== parsed.data.newPassword) {
+    return { fieldErrors: { confirmPassword: ["Die Passwörter stimmen nicht überein"] } };
+  }
+  if (parsed.data.newPassword === parsed.data.currentPassword) {
+    return { fieldErrors: { newPassword: ["Bitte ein anderes als das aktuelle Passwort wählen"] } };
+  }
+
+  const rows = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, user.id))
+    .limit(1);
+  const row = rows[0];
+  if (!row) return { error: "Konto nicht gefunden." };
+
+  const ok = await verifyPassword(row.passwordHash, parsed.data.currentPassword);
+  if (!ok) {
+    return { fieldErrors: { currentPassword: ["Aktuelles Passwort ist falsch"] } };
+  }
+
+  const newHash = await hashPassword(parsed.data.newPassword);
+  await db.update(users).set({ passwordHash: newHash }).where(eq(users.id, user.id));
+  await revokeOtherSessions(user.id); // andere Geraete abmelden, aktuelle Session bleibt
+
+  return { success: true };
 }

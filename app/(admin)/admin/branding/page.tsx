@@ -24,6 +24,7 @@ export default async function BrandingPage() {
             companyName: s.companyName,
             shortName: s.shortName,
             industry: s.industry,
+            minPriceAmount: s.minPriceAmount,
             contactEmail: s.contactEmail ?? "",
             contactPhone: s.contactPhone ?? "",
             addressLine: s.addressLine ?? "",

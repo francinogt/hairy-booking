@@ -24,6 +24,7 @@ export const DEFAULT_SETTINGS: Settings = {
   slotIntervalMin: 15,
   leadTimeMin: 60,
   bookingHorizonDays: 60,
+  minPriceAmount: "0.00",
   logoPath: null,
   colorNavbarBg: "#111827",
   colorNavbarText: "#ffffff",
@@ -37,6 +38,7 @@ export const DEFAULT_SETTINGS: Settings = {
   pwaThemeColor: "#111827",
   pwaBackgroundColor: "#ffffff",
   brandingExtra: null,
+  agbText: null,
   createdAt: "",
   updatedAt: "",
 };

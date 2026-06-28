@@ -7,6 +7,7 @@ import { revokeInvitation, setUserActive } from "@/app/actions/users";
 import { fromMysqlDateTime } from "@/lib/datetime";
 import { InviteForm } from "@/components/admin/invite-form";
 import { CopyField } from "@/components/admin/copy-field";
+import { UserResetPassword } from "@/components/admin/user-reset-password";
 
 export const metadata: Metadata = { title: "Benutzer" };
 
@@ -110,20 +111,25 @@ export default async function UsersPage() {
                       <span className="text-red-600">inaktiv</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
-                    {u.role !== "owner" && u.id !== owner.id ? (
-                      <form action={setUserActive} className="inline">
-                        <input type="hidden" name="userId" value={u.id} />
-                        <input type="hidden" name="active" value={u.isActive ? "false" : "true"} />
-                        <button
-                          type="submit"
-                          className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
-                        >
-                          {u.isActive ? "Deaktivieren" : "Aktivieren"}
-                        </button>
-                      </form>
+                  <td className="px-4 py-2.5">
+                    {u.id === owner.id ? (
+                      <span className="flex justify-end text-xs text-zinc-400">—</span>
                     ) : (
-                      <span className="text-xs text-zinc-400">—</span>
+                      <div className="flex flex-col items-end gap-2">
+                        <UserResetPassword userId={u.id} />
+                        {u.role !== "owner" ? (
+                          <form action={setUserActive}>
+                            <input type="hidden" name="userId" value={u.id} />
+                            <input type="hidden" name="active" value={u.isActive ? "false" : "true"} />
+                            <button
+                              type="submit"
+                              className="rounded-lg border border-zinc-300 px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50"
+                            >
+                              {u.isActive ? "Deaktivieren" : "Aktivieren"}
+                            </button>
+                          </form>
+                        ) : null}
+                      </div>
                     )}
                   </td>
                 </tr>

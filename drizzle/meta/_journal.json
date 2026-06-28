@@ -15,6 +15,27 @@
       "when": 1782655547476,
       "tag": "0001_complete_nebula",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1782675353448,
+      "tag": "0002_tough_old_lace",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1782677328170,
+      "tag": "0003_dazzling_malice",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1782678397258,
+      "tag": "0004_icy_flatman",
+      "breakpoints": true
     }
   ]
 }

@@ -11,6 +11,7 @@ const BASE_LINKS = [
 ];
 
 const OWNER_LINKS = [
+  { href: "/admin/skills", label: "Stile" },
   { href: "/admin/users", label: "Benutzer" },
   { href: "/admin/branding", label: "Branding & Firma" },
 ];

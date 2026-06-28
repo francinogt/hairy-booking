@@ -5,7 +5,7 @@ import { SESSION_COOKIE } from "@/lib/auth/constants";
 // Geschuetzte Pfad-Praefixe. ACHTUNG: Dies ist nur ein OPTIMISTISCHER Check auf
 // Cookie-Praesenz (schnell, laeuft bei Prefetches). Die echte Absicherung
 // (Session-Validierung + Rollen + Ownership) passiert in den Seiten/Actions via DAL.
-const PROTECTED_PREFIXES = ["/admin", "/account"];
+const PROTECTED_PREFIXES = ["/admin", "/account", "/book"];
 
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;

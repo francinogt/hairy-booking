@@ -1,12 +1,14 @@
 "use server";
 
+import { randomBytes } from "node:crypto";
 import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireOwner } from "@/lib/auth/dal";
+import { hashPassword } from "@/lib/auth/password";
 import { INVITE_ROLES } from "@/db/schema";
 import { createInvitation, revokeInvitation as revokeInvitationData } from "@/data/invitations";
-import { setUserActive as setUserActiveData } from "@/data/users";
+import { setUserActive as setUserActiveData, setUserPassword } from "@/data/users";
 
 const inviteSchema = z.object({
   email: z.email("Bitte eine gueltige E-Mail-Adresse eingeben"),
@@ -74,4 +76,23 @@ export async function revokeInvitation(formData: FormData): Promise<void> {
   if (!Number.isFinite(id)) return;
   await revokeInvitationData(id);
   revalidatePath("/admin/users");
+}
+
+export type ResetPasswordState = { error?: string; tempPassword?: string } | undefined;
+
+export async function resetUserPassword(
+  _prev: ResetPasswordState,
+  formData: FormData,
+): Promise<ResetPasswordState> {
+  await requireOwner();
+  const id = Number(formData.get("userId"));
+  if (!Number.isFinite(id)) return { error: "Ungültiger Benutzer." };
+
+  // 12-stelliges temporäres Passwort (base64url, keine Mehrdeutigkeit nötig)
+  const tempPassword = randomBytes(9).toString("base64url");
+  const passwordHash = await hashPassword(tempPassword);
+  await setUserPassword(id, passwordHash);
+
+  revalidatePath("/admin/users");
+  return { tempPassword };
 }

@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `house_number` varchar(16);

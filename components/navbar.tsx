@@ -8,13 +8,16 @@ import { MobileNav } from "@/components/mobile-nav";
 export type NavLink = { href: string; label: string };
 
 function buildLinks(user: SessionUser | null): NavLink[] {
-  const links: NavLink[] = [{ href: "/", label: "Buchen" }];
+  const links: NavLink[] = [];
+  // "Buchen" nur fuer Gaeste und Kunden (Staff bucht nicht).
+  if (!user || user.role === "customer") {
+    links.push({ href: "/book", label: "Buchen" });
+  }
   if (user) {
-    links.push(
-      isStaff(user.role)
-        ? { href: "/admin", label: "Verwaltung" }
-        : { href: "/account", label: "Mein Konto" },
-    );
+    if (isStaff(user.role)) {
+      links.push({ href: "/admin", label: "Verwaltung" });
+    }
+    links.push({ href: "/account", label: "Mein Konto" });
   }
   return links;
 }

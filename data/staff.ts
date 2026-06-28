@@ -1,7 +1,13 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
-import { staffProfiles, users, type StaffProfile } from "@/db/schema";
+import {
+  staffProfiles,
+  staffSkills,
+  staffStyleRates,
+  users,
+  type StaffProfile,
+} from "@/db/schema";
 
 /** URL-sicherer Slug (Umlaute -> ae/oe/ue, Rest entfernt). */
 export function slugify(input: string): string {
@@ -99,3 +105,65 @@ export async function updateStaffProfile(
 ) {
   await db.update(staffProfiles).set(values).where(eq(staffProfiles.id, id));
 }
+
+export type BookableStaff = {
+  id: number;
+  displayName: string;
+  slug: string;
+  specialty: string | null;
+  bio: string | null;
+  avatarUrl: string | null;
+  skillIds: number[];
+  /** Stundensatz (CHF) pro skillId, als String (decimal). */
+  rates: Record<number, string>;
+};
+
+/** Buchbare, aktive Mitarbeiter inkl. ihrer Skill-IDs (fuer den Wizard, client-seitig filterbar). */
+export async function listBookableStaffWithSkills(): Promise<BookableStaff[]> {
+  const staff = await db
+    .select({
+      id: staffProfiles.id,
+      displayName: staffProfiles.displayName,
+      slug: staffProfiles.slug,
+      specialty: staffProfiles.specialty,
+      bio: staffProfiles.bio,
+      avatarUrl: staffProfiles.avatarUrl,
+    })
+    .from(staffProfiles)
+    .innerJoin(users, eq(staffProfiles.userId, users.id))
+    .where(and(eq(staffProfiles.isBookable, true), eq(users.isActive, true)))
+    .orderBy(asc(staffProfiles.sortOrder), asc(staffProfiles.displayName));
+
+  const links = await db
+    .select({ staffId: staffSkills.staffId, skillId: staffSkills.skillId })
+    .from(staffSkills);
+
+  const bySkill = new Map<number, number[]>();
+  for (const l of links) {
+    const arr = bySkill.get(l.staffId) ?? [];
+    arr.push(l.skillId);
+    bySkill.set(l.staffId, arr);
+  }
+
+  const rateRows = await db
+    .select({
+      staffId: staffStyleRates.staffId,
+      skillId: staffStyleRates.skillId,
+      hourlyRate: staffStyleRates.hourlyRate,
+    })
+    .from(staffStyleRates);
+
+  const ratesByStaff = new Map<number, Record<number, string>>();
+  for (const r of rateRows) {
+    const m = ratesByStaff.get(r.staffId) ?? {};
+    m[r.skillId] = r.hourlyRate;
+    ratesByStaff.set(r.staffId, m);
+  }
+
+  return staff.map((s) => ({
+    ...s,
+    skillIds: bySkill.get(s.id) ?? [],
+    rates: ratesByStaff.get(s.id) ?? {},
+  }));
+}
+

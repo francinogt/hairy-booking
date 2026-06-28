@@ -4,7 +4,7 @@
 import "../envConfig";
 import { eq } from "drizzle-orm";
 import { db } from "./index";
-import { settings, users } from "./schema";
+import { settings, skills, users } from "./schema";
 import { hashPassword } from "../lib/auth/password";
 
 async function main() {
@@ -41,6 +41,24 @@ async function main() {
     console.log(`✔ Owner ${email} angelegt`);
   } else {
     console.log(`• Owner ${email} existiert bereits`);
+  }
+
+  // 3) Start-Skills (Tattoo-Stile, owner-editierbar)
+  const existingSkills = await db.select({ id: skills.id }).from(skills).limit(1);
+  if (existingSkills.length === 0) {
+    const starter = [
+      { name: "Schriftzug", slug: "schriftzug" },
+      { name: "Porträt", slug: "portraet" },
+      { name: "Old School", slug: "old-school" },
+      { name: "Realistic", slug: "realistic" },
+      { name: "Fineline", slug: "fineline" },
+      { name: "Tribal", slug: "tribal" },
+      { name: "Aquarell", slug: "aquarell" },
+    ];
+    await db.insert(skills).values(starter.map((s, i) => ({ ...s, sortOrder: i })));
+    console.log(`✔ ${starter.length} Start-Skills angelegt`);
+  } else {
+    console.log("• Skills existieren bereits");
   }
 
   console.log("Seed abgeschlossen.");

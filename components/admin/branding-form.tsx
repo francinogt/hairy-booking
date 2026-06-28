@@ -8,6 +8,7 @@ export type BrandingInitial = {
   companyName: string;
   shortName: string;
   industry: string;
+  minPriceAmount: string;
   contactEmail: string;
   contactPhone: string;
   addressLine: string;
@@ -109,6 +110,17 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
             </datalist>
           </label>
         </div>
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-zinc-700 sm:max-w-xs">
+          Mindestpreis (CHF) <span className="font-normal text-zinc-400">(gilt für alle Tattoos)</span>
+          <input
+            type="number"
+            name="minPriceAmount"
+            min={0}
+            step="5"
+            defaultValue={initial.minPriceAmount}
+            className={textInput}
+          />
+        </label>
       </fieldset>
 
       {/* Kontakt & Adresse (erscheint im Footer) */}
