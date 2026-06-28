@@ -28,9 +28,14 @@ export function Navbar({ user, settings }: { user: SessionUser | null; settings:
         <Link href="/" className="flex items-center gap-2 font-heading text-lg font-semibold">
           {settings.logoPath ? (
             // eslint-disable-next-line @next/next/no-img-element -- Logo ist dynamisch (auch SVG), kein next/image
-            <img src={settings.logoPath} alt={settings.companyName} className="h-8 w-auto" />
-          ) : null}
-          <span>{settings.companyName}</span>
+            <img
+              src={settings.logoPath}
+              alt={settings.companyName}
+              className="h-9 max-h-9 w-auto object-contain"
+            />
+          ) : (
+            <span>{settings.companyName}</span>
+          )}
         </Link>
 
         {/* Desktop-Navigation */}
