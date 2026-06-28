@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  /* Vom Server per <style> ueberschrieben (DB-Branding); hier sichere Defaults. */
+  --background: #ffffff;
+  --foreground: #171717;
+  --navbar-bg: #111827;
+  --navbar-text: #ffffff;
+  --accent: #2563eb;
+  --brand-font-heading: var(--f-geist, ui-sans-serif, system-ui, sans-serif);
+  --brand-font-body: var(--f-geist, ui-sans-serif, system-ui, sans-serif);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-navbar: var(--navbar-bg);
+  --color-navbar-foreground: var(--navbar-text);
+  --color-accent: var(--accent);
+  --font-sans: var(--brand-font-body);
+  --font-heading: var(--brand-font-heading);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--brand-font-body, ui-sans-serif, system-ui, sans-serif);
+}
