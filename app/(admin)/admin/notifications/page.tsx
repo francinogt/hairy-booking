@@ -3,6 +3,7 @@ import Link from "next/link";
 import { requireRole } from "@/lib/auth/dal";
 import { listNotificationsForUser } from "@/data/notifications";
 import { markAllReadAction, markNotificationReadAction } from "@/app/actions/notifications";
+import { PushToggle } from "@/components/push-toggle";
 
 export const metadata: Metadata = { title: "Benachrichtigungen" };
 
@@ -25,6 +26,14 @@ export default async function NotificationsPage() {
             </button>
           </form>
         ) : null}
+      </div>
+
+      <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-4">
+        <p className="text-sm font-medium text-zinc-900">Push auf dieses Gerät</p>
+        <p className="mt-0.5 mb-3 text-sm text-zinc-500">
+          Erhalte neue Anfragen sofort als Benachrichtigung — auch wenn die App geschlossen ist.
+        </p>
+        <PushToggle />
       </div>
 
       {items.length === 0 ? (

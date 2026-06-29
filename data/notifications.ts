@@ -2,6 +2,7 @@ import "server-only";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { notifications, type AppNotification, type NotificationType } from "@/db/schema";
+import { sendPushToUser } from "@/lib/push/server";
 
 export async function createNotification(input: {
   recipientUserId: number;
@@ -16,6 +17,14 @@ export async function createNotification(input: {
     title: input.title,
     body: input.body ?? null,
     link: input.link ?? null,
+  });
+
+  // Zusaetzlich als Web-Push zustellen (Best-Effort: Fehler werden in
+  // sendPushToUser abgefangen und blockieren die In-App-Notification nie).
+  await sendPushToUser(input.recipientUserId, {
+    title: input.title,
+    body: input.body ?? undefined,
+    url: input.link ?? undefined,
   });
 }
 

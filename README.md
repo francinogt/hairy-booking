@@ -26,8 +26,23 @@ Die App ist als PWA installierbar (Home-Bildschirm auf iOS/Android).
 
 - **Manifest:** dynamisch unter `/manifest.webmanifest` ([app/manifest.ts](app/manifest.ts)) — Name, Farben und Icon stammen aus den Branding-Settings.
 - **App-Icon (Prioritaet):** eigenes PWA-Logo des Owners (Branding-Seite, Feld «PWA-Logo») → sonst Entwickler-Logo. Logik zentral in [lib/branding-assets.ts](lib/branding-assets.ts).
-- **Service Worker:** [public/sw.js](public/sw.js), registriert via [components/pwa-register.tsx](components/pwa-register.tsx). Noetig fuer die Installierbarkeit (Android) und spaeteren Web-Push.
+- **Service Worker:** [public/sw.js](public/sw.js), registriert via [components/pwa-register.tsx](components/pwa-register.tsx). Noetig fuer die Installierbarkeit (Android) und Web-Push.
 - **Entwickler-Logo:** liegt unter `public/developer-logos/` und wird im Footer als «Entwickelt von Hairy Developer» angezeigt.
+
+### Web-Push-Benachrichtigungen
+
+Push wird bei jeder neuen In-App-Notification mitgesendet (neue Anfrage → Mitarbeiter,
+Bestaetigung/Absage → Kunde). Opt-in pro Geraet ueber den Schalter im Konto bzw. unter
+Verwaltung → Benachrichtigungen.
+
+- **Versand:** [lib/push/server.ts](lib/push/server.ts) (web-push/VAPID), angebunden in [data/notifications.ts](data/notifications.ts).
+- **Abo verwalten:** Server-Actions in [app/actions/push.ts](app/actions/push.ts), Client in [components/push-toggle.tsx](components/push-toggle.tsx).
+- **VAPID-Keys** generieren und in `.env` setzen (siehe `.env.example`):
+  ```bash
+  node -e "console.log(require('web-push').generateVAPIDKeys())"
+  ```
+  Benoetigt: `VAPID_SUBJECT`, `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`.
+  Fehlen die Keys, ist Push deaktiviert — die App laeuft normal weiter.
 
 > Hinweis iOS: Web-Push funktioniert erst ab iOS 16.4 und nur, wenn die App vorher zum Home-Bildschirm hinzugefuegt wurde.
 

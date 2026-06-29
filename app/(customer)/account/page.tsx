@@ -5,6 +5,7 @@ import { isStaff } from "@/lib/auth/roles";
 import { logout } from "@/app/actions/auth";
 import { ProfileForm } from "@/components/account/profile-form";
 import { ChangePasswordForm } from "@/components/account/change-password-form";
+import { PushToggle } from "@/components/push-toggle";
 import { listRequestsForCustomer } from "@/data/bookingRequests";
 
 export const metadata: Metadata = {
@@ -72,6 +73,16 @@ export default async function AccountPage() {
           </ul>
         </section>
       ) : null}
+
+      <section className="mt-8">
+        <h2 className="font-heading text-lg font-semibold text-zinc-900">Benachrichtigungen</h2>
+        <p className="mt-1 text-sm text-zinc-500">
+          Erhalte eine Push-Benachrichtigung, sobald sich der Status deiner Anfrage ändert.
+        </p>
+        <div className="mt-4">
+          <PushToggle />
+        </div>
+      </section>
 
       <section className="mt-8">
         <h2 className="font-heading text-lg font-semibold text-zinc-900">Persönliche Daten</h2>
