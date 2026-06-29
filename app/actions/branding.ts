@@ -8,6 +8,7 @@ import { db } from "@/db";
 import { settings } from "@/db/schema";
 import { requireOwner } from "@/lib/auth/dal";
 import { isFontKey } from "@/lib/font-options";
+import { uploadsDir } from "@/lib/uploads";
 
 const HEX = /^#[0-9a-fA-F]{6}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -42,7 +43,7 @@ async function saveUploadedImage(file: FormDataEntryValue | null, prefix: string
   const ext = ALLOWED_IMAGE[file.type];
   if (!ext) throw new Error("Bild-Format nicht unterstuetzt (PNG, JPG, WEBP, SVG).");
   if (file.size > MAX_LOGO_BYTES) throw new Error("Bild ist zu gross (max. 2 MB).");
-  const dir = path.join(process.cwd(), "public", "uploads");
+  const dir = uploadsDir();
   await mkdir(dir, { recursive: true });
   const filename = `${prefix}-${Date.now()}.${ext}`;
   await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));

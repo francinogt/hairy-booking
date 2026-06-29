@@ -3,6 +3,7 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { revalidatePath } from "next/cache";
+import { uploadsDir } from "@/lib/uploads";
 import { z } from "zod";
 import { requireUser } from "@/lib/auth/dal";
 import { BODY_VIEWS, USER_GENDERS } from "@/db/schema";
@@ -115,7 +116,7 @@ export async function submitBooking(formData: FormData): Promise<SubmitResult> {
   const ext = ALLOWED_IMAGE[file.type];
   if (!ext) return { ok: false, error: "Bildformat nicht unterstützt (PNG, JPG, WEBP)." };
   if (file.size > MAX_IMAGE_BYTES) return { ok: false, error: "Bild ist zu gross (max. 8 MB)." };
-  const dir = path.join(process.cwd(), "public", "uploads");
+  const dir = uploadsDir();
   await mkdir(dir, { recursive: true });
   const filename = `ref-${user.id}-${file.size}-${file.name.replace(/[^a-zA-Z0-9.]/g, "").slice(-20)}`;
   await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
