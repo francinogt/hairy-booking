@@ -1,4 +1,5 @@
 import type { Settings } from "@/db/schema";
+import { DEVELOPER_LOGO_URL, DEVELOPER_NAME } from "@/lib/branding-assets";
 
 export function Footer({ settings }: { settings: Settings }) {
   const year = new Date().getFullYear();
@@ -32,9 +33,14 @@ export function Footer({ settings }: { settings: Settings }) {
           ) : null}
         </div>
 
-        <p className="mt-6 border-t border-white/10 pt-4 text-xs opacity-60">
-          © {year} {settings.companyName}. Alle Rechte vorbehalten.
-        </p>
+        <div className="mt-6 flex flex-col gap-3 border-t border-white/10 pt-4 text-xs opacity-60 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {year} {settings.companyName}. Alle Rechte vorbehalten.</p>
+          <span className="flex items-center gap-2">
+            {/* eslint-disable-next-line @next/next/no-img-element -- statisches Entwickler-Logo */}
+            <img src={DEVELOPER_LOGO_URL} alt={DEVELOPER_NAME} className="h-8 w-auto" />
+            <span>Entwickelt von {DEVELOPER_NAME}</span>
+          </span>
+        </div>
       </div>
     </footer>
   );

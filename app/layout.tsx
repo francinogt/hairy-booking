@@ -3,15 +3,20 @@ import "./globals.css";
 import { getSettings } from "@/data/settings";
 import { getCurrentUser } from "@/lib/auth/dal";
 import { baseFontClasses, fontCssVars } from "@/lib/fonts";
+import { resolvePwaIconUrl } from "@/lib/branding-assets";
 import { Navbar } from "@/components/navbar";
 import { Footer } from "@/components/footer";
+import { PwaRegister } from "@/components/pwa-register";
 
 export async function generateMetadata(): Promise<Metadata> {
   const s = await getSettings();
+  const iconUrl = resolvePwaIconUrl(s);
   return {
     title: { default: s.companyName, template: `%s · ${s.companyName}` },
     description: `${s.companyName} – Termine online buchen`,
     applicationName: s.companyName,
+    // iOS nutzt fuer "Zum Home-Bildschirm" das Apple-Touch-Icon.
+    icons: { icon: iconUrl, apple: iconUrl },
   };
 }
 
@@ -52,6 +57,7 @@ export default async function RootLayout({
         <Navbar user={user} settings={s} />
         {children}
         <Footer settings={s} />
+        <PwaRegister />
       </body>
     </html>
   );

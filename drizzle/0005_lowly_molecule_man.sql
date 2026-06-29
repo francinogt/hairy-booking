@@ -1,0 +1,1 @@
+ALTER TABLE `settings` ADD `pwa_logo_path` varchar(255);

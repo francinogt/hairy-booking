@@ -26,6 +26,7 @@ export const DEFAULT_SETTINGS: Settings = {
   bookingHorizonDays: 60,
   minPriceAmount: "0.00",
   logoPath: null,
+  pwaLogoPath: null,
   colorNavbarBg: "#111827",
   colorNavbarText: "#ffffff",
   colorPageBg: "#ffffff",

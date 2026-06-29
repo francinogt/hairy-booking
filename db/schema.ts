@@ -98,6 +98,9 @@ export const settings = mysqlTable("settings", {
 
   // Branding (vor dem Persistieren validieren — wird roh in <style> injiziert)
   logoPath: varchar("logo_path", { length: 255 }),
+  // Eigenes App-Icon fuer die PWA. Wenn gesetzt, ueberschreibt es das
+  // Entwickler-Fallback-Logo (siehe lib/branding-assets.ts).
+  pwaLogoPath: varchar("pwa_logo_path", { length: 255 }),
   colorNavbarBg: varchar("color_navbar_bg", { length: 9 }).notNull().default("#111827"),
   colorNavbarText: varchar("color_navbar_text", { length: 9 }).notNull().default("#ffffff"),
   colorPageBg: varchar("color_page_bg", { length: 9 }).notNull().default("#ffffff"),

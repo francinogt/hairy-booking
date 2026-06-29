@@ -26,6 +26,7 @@ export type BrandingInitial = {
   fontHeading: string;
   fontBody: string;
   logoPath: string | null;
+  pwaLogoPath: string | null;
 };
 
 const textInput =
@@ -162,6 +163,23 @@ export function BrandingForm({ initial }: { initial: BrandingInitial }) {
           <p className="text-sm text-zinc-500">Noch kein Logo hochgeladen.</p>
         )}
         <input type="file" name="logo" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="text-sm" />
+        <p className="text-xs text-zinc-400">PNG, JPG, WEBP oder SVG, max. 2 MB.</p>
+      </fieldset>
+
+      {/* PWA-Logo (App-Icon beim Installieren) */}
+      <fieldset className="flex flex-col gap-3">
+        <legend className="font-heading text-lg font-semibold text-zinc-900">PWA-Logo (App-Icon)</legend>
+        <p className="text-sm text-zinc-500">
+          Wird als Icon angezeigt, wenn die App auf dem Startbildschirm installiert wird. Ohne eigenes
+          PWA-Logo wird das Entwickler-Logo verwendet. Am besten quadratisch, mind. 512×512 px.
+        </p>
+        {initial.pwaLogoPath ? (
+          // eslint-disable-next-line @next/next/no-img-element -- dynamisches Logo (auch SVG)
+          <img src={initial.pwaLogoPath} alt="Aktuelles PWA-Logo" className="h-16 w-16 rounded-xl bg-zinc-100 object-contain p-1" />
+        ) : (
+          <p className="text-sm text-zinc-500">Noch kein eigenes PWA-Logo — es wird das Entwickler-Logo genutzt.</p>
+        )}
+        <input type="file" name="pwaLogo" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="text-sm" />
         <p className="text-xs text-zinc-400">PNG, JPG, WEBP oder SVG, max. 2 MB.</p>
       </fieldset>
 

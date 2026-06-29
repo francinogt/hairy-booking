@@ -32,6 +32,23 @@ const MAX_LOGO_BYTES = 2 * 1024 * 1024;
 
 export type BrandingState = { error?: string; success?: boolean } | undefined;
 
+/**
+ * Speichert ein hochgeladenes Bild unter public/uploads und liefert den
+ * oeffentlichen Pfad zurueck. `null` -> kein (gueltiges) File vorhanden.
+ * Wirft bei ungueltigem Format/zu grosser Datei einen Error mit Meldung.
+ */
+async function saveUploadedImage(file: FormDataEntryValue | null, prefix: string): Promise<string | null> {
+  if (!(file instanceof File) || file.size === 0) return null;
+  const ext = ALLOWED_IMAGE[file.type];
+  if (!ext) throw new Error("Bild-Format nicht unterstuetzt (PNG, JPG, WEBP, SVG).");
+  if (file.size > MAX_LOGO_BYTES) throw new Error("Bild ist zu gross (max. 2 MB).");
+  const dir = path.join(process.cwd(), "public", "uploads");
+  await mkdir(dir, { recursive: true });
+  const filename = `${prefix}-${Date.now()}.${ext}`;
+  await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
+  return `/uploads/${filename}`;
+}
+
 async function updateSettingsRow(values: Partial<typeof settings.$inferInsert>) {
   const existing = await db.select({ id: settings.id }).from(settings).limit(1);
   const id = existing[0]?.id;
@@ -101,17 +118,14 @@ export async function saveBranding(
     ...colors,
   };
 
-  // Optionaler Logo-Upload (Single-Tenant, lokaler Node-Server -> FS schreibbar)
-  const file = formData.get("logo");
-  if (file instanceof File && file.size > 0) {
-    const ext = ALLOWED_IMAGE[file.type];
-    if (!ext) return { error: "Logo-Format nicht unterstuetzt (PNG, JPG, WEBP, SVG)." };
-    if (file.size > MAX_LOGO_BYTES) return { error: "Logo ist zu gross (max. 2 MB)." };
-    const dir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(dir, { recursive: true });
-    const filename = `logo-${Date.now()}.${ext}`;
-    await writeFile(path.join(dir, filename), Buffer.from(await file.arrayBuffer()));
-    values.logoPath = `/uploads/${filename}`;
+  // Optionale Logo-Uploads (Single-Tenant, lokaler Node-Server -> FS schreibbar)
+  try {
+    const logoPath = await saveUploadedImage(formData.get("logo"), "logo");
+    if (logoPath) values.logoPath = logoPath;
+    const pwaLogoPath = await saveUploadedImage(formData.get("pwaLogo"), "pwa-logo");
+    if (pwaLogoPath) values.pwaLogoPath = pwaLogoPath;
+  } catch (err) {
+    return { error: err instanceof Error ? err.message : "Upload fehlgeschlagen." };
   }
 
   await updateSettingsRow(values);

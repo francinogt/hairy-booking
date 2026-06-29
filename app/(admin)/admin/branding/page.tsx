@@ -42,6 +42,7 @@ export default async function BrandingPage() {
             fontHeading: s.fontHeading,
             fontBody: s.fontBody,
             logoPath: s.logoPath,
+            pwaLogoPath: s.pwaLogoPath,
           }}
         />
       </div>

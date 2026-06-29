@@ -20,6 +20,17 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## PWA & Branding
+
+Die App ist als PWA installierbar (Home-Bildschirm auf iOS/Android).
+
+- **Manifest:** dynamisch unter `/manifest.webmanifest` ([app/manifest.ts](app/manifest.ts)) — Name, Farben und Icon stammen aus den Branding-Settings.
+- **App-Icon (Prioritaet):** eigenes PWA-Logo des Owners (Branding-Seite, Feld «PWA-Logo») → sonst Entwickler-Logo. Logik zentral in [lib/branding-assets.ts](lib/branding-assets.ts).
+- **Service Worker:** [public/sw.js](public/sw.js), registriert via [components/pwa-register.tsx](components/pwa-register.tsx). Noetig fuer die Installierbarkeit (Android) und spaeteren Web-Push.
+- **Entwickler-Logo:** liegt unter `public/developer-logos/` und wird im Footer als «Entwickelt von Hairy Developer» angezeigt.
+
+> Hinweis iOS: Web-Push funktioniert erst ab iOS 16.4 und nur, wenn die App vorher zum Home-Bildschirm hinzugefuegt wurde.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
